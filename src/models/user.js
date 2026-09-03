@@ -10,7 +10,7 @@ const userSchema = new mongoose.Schema(
     email: {
       type: String,
       required: [true, "Email address is required"],
-      unique: true,
+      unique: true, //mongooose automatically creates index for you
       trim: true,
       lowercase: true,
       validate: {
@@ -20,6 +20,7 @@ const userSchema = new mongoose.Schema(
         },
         message: (props) => `${props.value} is not a valid email address!`,
       },
+      index: true,
     },
     password: {
       type: String,
