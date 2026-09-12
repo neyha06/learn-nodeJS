@@ -26,11 +26,17 @@ const connectionRequestSchema = new mongoose.Schema(
   },
 );
 
-connectionRequestSchema.index({ fromUserId: 1 }); //COMPOUND INDEX
+connectionRequestSchema.index({ fromUserId: 1, toUserId: 1 }); //COMPOUND INDEX
 
 connectionRequestSchema.pre("save", function () {
   const connectionRequest = this;
+  // Check if the fromUserId is same as toUserId
+  if (connectionRequest.fromUserId.equals(connectionRequest.toUserId)) {
+    throw new Error("Cannot send connection request to yourself!");
+  }
+  next();
 }); //its like a middleware- it will be called every time a connection req will be saved
+
 const ConnectionRequest = new mongoose.model(
   "ConnectionRequest",
   connectionRequestSchema,
