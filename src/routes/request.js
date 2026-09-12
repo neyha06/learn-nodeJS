@@ -16,6 +16,7 @@ requestRouter.post("sendConnectionRew", userAuth, async (req, res) => {
   }
 });
 
+//API for intrested/ignore connection request
 requestRouter.post(
   "/request/send/:status/:toUserId",
   userAuth,
@@ -62,7 +63,10 @@ requestRouter.post(
         status,
       });
       const data = await connectionRequest.save();
-      res.json({ message: "Connnection request sent successfully!", data });
+      res.json({
+        message: "Connnection request sent successfully!",
+        data: connectionRequest,
+      });
     } catch (error) {
       res.status(400).send(`Unable to send connection req: ${error.message}`);
       //res.send() only accepts one body argument.
@@ -71,4 +75,39 @@ requestRouter.post(
   },
 );
 
+//API to accept the connection request
+requestRouter.post(
+  "/request/review/:status/:requestId",
+  userAuth,
+  async (req, res) => {
+    try {
+      const loggedInUser = req.user;
+      const { requestId, status } = req.params;
+      const acceptedStatus = ["accepted", "intrested"];
+      if (!acceptedStatus.includes(status)) {
+        return res.status(400).send("Status type is invalid!");
+      }
+      const connectionRequest = await ConnectionRequest.findOne({
+        _id: requestId,
+        toUserId: loggedInUser._id,
+        status: "intrested",
+      });
+      console.log(
+        "connectionRequest: requestId: loggedInUser._id",
+        connectionRequest,
+        requestId,
+        loggedInUser._id,
+      );
+      if (!connectionRequest) {
+        return res.status(404).send("Connection Request not found");
+      }
+      connectionRequest.status = status;
+      const data = await connectionRequest.save();
+      res.json({ message: "Connection request:  " + status, data });
+    } catch (error) {
+      console.error("Err: ", error);
+      res.status(400).send("Unable to accept the req");
+    }
+  },
+);
 module.exports = requestRouter;
